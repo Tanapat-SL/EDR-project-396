@@ -1,0 +1,34 @@
+-- 1. JOIN + GROUP BY: นับจำนวนปาร์ตี้ที่สถานะ OPEN ในแต่ละเกม
+SELECT g.name AS game_name, COUNT(p.id) AS total_open_parties
+FROM "Game" g
+JOIN "Party" p ON g.id = p."gameId"
+WHERE p.status = 'OPEN'
+GROUP BY g.name;
+
+-- 2. MIN, MAX, AVG: หาค่าเฉลี่ย สูงสุด และต่ำสุด ของจำนวนคนในปาร์ตี้โหมด RANKED
+SELECT 
+    AVG("maxMembers") AS avg_members, 
+    MAX("maxMembers") AS max_members, 
+    MIN("maxMembers") AS min_members
+FROM "Party"
+WHERE mode = 'RANKED';
+
+-- 3. Sub Query: หาชื่อผู้ใช้ที่ยังไม่เคยเป็นเจ้าของปาร์ตี้เลย
+SELECT username, "displayName"
+FROM "User"
+WHERE id NOT IN (
+    SELECT "ownerId" FROM "Party"
+);
+
+-- 4. JOIN (3 ตาราง): ดูข้อมูลผู้ใช้ว่าเล่นเกมอะไรและอยู่ Rank ไหน
+SELECT u.username, g.name AS game_name, ug.rank, ug."playStyle"
+FROM "User" u
+JOIN "UserGame" ug ON u.id = ug."userId"
+JOIN "Game" g ON ug."gameId" = g.id;
+
+-- 5. JOIN + GROUP BY + AVG + HAVING: หาเกมที่มีค่าเฉลี่ยคนในปาร์ตี้มากกว่า 4 คน
+SELECT g.name, AVG(p."maxMembers") AS avg_party_size
+FROM "Game" g
+JOIN "Party" p ON g.id = p."gameId"
+GROUP BY g.name
+HAVING AVG(p."maxMembers") > 4;
